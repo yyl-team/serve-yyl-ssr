@@ -34,7 +34,9 @@
     "prettier": "prettier --write ./**/*.js",
     "test": "jest ./test/jest/"
   },
-  "dependencies": {},
+  "dependencies": {
+    "yyl-fs": "^0.3.3"
+  },
   "devDependencies": {
     "eslint": "^7.9.0",
     "eslint-config-yyl-node": "^0.1.2",
