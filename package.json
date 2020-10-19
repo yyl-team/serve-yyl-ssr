@@ -1,0 +1,49 @@
+{
+  "main": "index.js",
+  "types": "index.d.ts",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">= 8.0.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "jest": true
+    },
+    "extends": [
+      "yyl-node"
+    ]
+  },
+  "eslintIgnore": [
+    "node_modules",
+    "test/case/",
+    "ui-test/",
+    "test/__frag/",
+    "test/__gitcase/"
+  ],
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "jsxSingleQuote": true,
+    "endOfLine": "lf",
+    "quoteProps": "consistent",
+    "trailingComma": "none"
+  },
+  "scripts": {
+    "eslint": "eslint ./",
+    "eslint:fix": "eslint ./ --fix",
+    "prettier": "prettier --write ./**/*.js",
+    "test": "jest ./test/jest/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.9.0",
+    "eslint-config-yyl-node": "^0.1.2",
+    "jest": "26.4.2",
+    "prettier": "^2.1.2"
+  },
+  "name": "serve-yyl-ssr",
+  "description": "yyl ssr server middlewarw",
+  "repository": "https://github.com/jackness1208/serve-yyl-ssr.git",
+  "author": "jackness",
+  "license": "MIT"
+}
