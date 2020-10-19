@@ -4,16 +4,19 @@ yyl-ssr 用 服务端 中间件
 ## usage
 直接看types
 ```typescript
-/** render option */
+/** next function */
 export type NextFunction = (err?: any) => void
+/** render option */
 export interface ServeYylSsrOptionRenderOption {
   res: Response
   req: Request
   next: NextFunction
 }
+/** 日志类型 */
 export type LoggerType = 'info' | 'error' | 'warn' | 'success'
+/** 日志接收函数 */
 export type Logger = (type: LoggerType, args: any[]) => void
-/** serveYylSss option */
+/** serveYylSsr option */
 export interface ServeYylSsrOption {
   /** 渲染 */
   render(op: ServeYylSsrOptionRenderOption): Promise<string> | string | void 
@@ -25,8 +28,13 @@ export interface ServeYylSsrOption {
   cachePath?: string
   /** 日志输出回调 */
   logger?: Logger
+  /** 主动缓存, 缓存间隔同 cacheExpire */
+  activeCache?: boolean
 }
+/** serveYylSsr return */
 type ServeYylSsrResult = (req: Request, res: Response, next: NextFunction) => void
+
+/** serve-yyl-ssr */
 type ServeYylSsr = (op: ServeYylSsrOption) => ServeYylSsrResult
 
 declare const serveYylSsr: ServeYylSsr
