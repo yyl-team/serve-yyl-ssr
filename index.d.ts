@@ -1,8 +1,9 @@
 /** render option */
+export type NextFunction = (err?: any) => void
 export interface ServeYylSsrOptionRenderOption {
   res: Response
   req: Request
-  next: (err?: any) => void
+  next: NextFunction
 }
 export type LoggerType = 'info' | 'error' | 'warn' | 'success'
 export type Logger = (type: LoggerType, args: any[]) => void
@@ -19,7 +20,8 @@ export interface ServeYylSsrOption {
   /** 日志输出回调 */
   logger?: Logger
 }
-type ServeYylSsr = (op: ServeYylSsrOption) => {}
+type ServeYylSsrResult = (req: Request, res: Response, next: NextFunction) => void
+type ServeYylSsr = (op: ServeYylSsrOption) => ServeYylSsrResult
 
 declare const serveYylSsr: ServeYylSsr
 export = serveYylSsr
