@@ -12,9 +12,9 @@ function waitFor(t) {
   })
 }
 
-test('usage test', async () => {
+test('query test', async () => {
   const HTML_STR = '<html>hello test</html>'
-  const cachePath = path.join(FRAG_PATH, '.index-yyl-ssr-cache')
+  const cachePath = path.join(FRAG_PATH, '.query-yyl-ssr-cache')
   const logs = []
 
   /** 清除文件 */
@@ -58,11 +58,11 @@ test('usage test', async () => {
   /** 用例执行 */
   visit('path/to/abc')
   await waitFor(100)
-  visit('path/to/abc')
+  visit('path/to/abc?a=1')
   await waitFor(300)
-  visit('path/to/abc')
+  visit('path/to/abc#abc')
   await waitFor(1000)
-  visit('path/to/abc')
+  visit('path/to/abc&abc')
 
   /** 验证 */
   await waitFor(500)

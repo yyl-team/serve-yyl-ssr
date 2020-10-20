@@ -1,13 +1,16 @@
-/** render option */
+/** next function */
 export type NextFunction = (err?: any) => void
+/** render option */
 export interface ServeYylSsrOptionRenderOption {
   res: Response
   req: Request
   next: NextFunction
 }
+/** 日志类型 */
 export type LoggerType = 'info' | 'error' | 'warn' | 'success'
+/** 日志接收函数 */
 export type Logger = (type: LoggerType, args: any[]) => void
-/** serveYylSss option */
+/** serveYylSsr option */
 export interface ServeYylSsrOption {
   /** 渲染 */
   render(op: ServeYylSsrOptionRenderOption): Promise<string> | string | void 
@@ -17,10 +20,15 @@ export interface ServeYylSsrOption {
   cacheExpire?: number
   /** 缓存目录 */
   cachePath?: string
+  /** 缓存默认最大条数, 默认 200 */
+  cacheLimit?: number
   /** 日志输出回调 */
   logger?: Logger
 }
+/** serveYylSsr return */
 type ServeYylSsrResult = (req: Request, res: Response, next: NextFunction) => void
+
+/** serve-yyl-ssr */
 type ServeYylSsr = (op: ServeYylSsrOption) => ServeYylSsrResult
 
 declare const serveYylSsr: ServeYylSsr
