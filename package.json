@@ -32,7 +32,9 @@
     "eslint": "eslint ./",
     "eslint:fix": "eslint ./ --fix",
     "prettier": "prettier --write ./",
-    "test": "jest ./test/jest/"
+    "test": "jest ./test/jest/",
+    "test:cachelimit": "jest ./test/jest/cachelimit.test.js",
+    "test:query": "jest ./test/jest/query.test.js"
   },
   "dependencies": {
     "yyl-fs": "^0.3.3"
@@ -44,7 +46,7 @@
     "prettier": "^2.1.2"
   },
   "name": "serve-yyl-ssr",
-  "description": "yyl ssr server middlewarw",
+  "description": "yyl ssr server middleware",
   "repository": "https://github.com/jackness1208/serve-yyl-ssr.git",
   "author": "jackness",
   "license": "MIT"

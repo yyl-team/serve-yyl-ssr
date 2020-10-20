@@ -20,10 +20,10 @@ export interface ServeYylSsrOption {
   cacheExpire?: number
   /** 缓存目录 */
   cachePath?: string
+  /** 缓存默认最大条数, 默认 200 */
+  cacheLimit?: number
   /** 日志输出回调 */
   logger?: Logger
-  /** 主动缓存, 缓存间隔同 cacheExpire */
-  activeCache?: boolean
 }
 /** serveYylSsr return */
 type ServeYylSsrResult = (req: Request, res: Response, next: NextFunction) => void
