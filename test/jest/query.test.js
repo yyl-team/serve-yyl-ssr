@@ -14,7 +14,7 @@ function waitFor(t) {
 
 test('query test', async () => {
   const HTML_STR = '<html>hello test</html>'
-  const cachePath = path.join(FRAG_PATH, '.index-yyl-ssr-cache')
+  const cachePath = path.join(FRAG_PATH, '.query-yyl-ssr-cache')
   const logs = []
 
   /** 清除文件 */

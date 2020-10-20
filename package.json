@@ -1,7 +1,7 @@
 {
   "main": "index.js",
   "types": "index.d.ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "node": ">= 8.0.0"
   },
@@ -34,7 +34,8 @@
     "prettier": "prettier --write ./",
     "test": "jest ./test/jest/",
     "test:cachelimit": "jest ./test/jest/cachelimit.test.js",
-    "test:query": "jest ./test/jest/query.test.js"
+    "test:query": "jest ./test/jest/query.test.js",
+    "prepublishOnly": "npm run prettier & npm test"
   },
   "dependencies": {
     "yyl-fs": "^0.3.3"
