@@ -23,7 +23,7 @@ declare namespace serveYylSsr {
   /** 日志接收函数 */
   type Logger = (type: LoggerType, args: any[]) => void
   /** render 返回结果 */
-  type RenderResult = string | Error | void
+  type RenderResult = [ Error | undefined, string | undefined ] | string
   /** serveYylSsr option */
   interface ServeYylSsrOption<
     R extends http.OutgoingMessage,
