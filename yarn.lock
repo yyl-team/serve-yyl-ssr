@@ -4045,3 +4045,8 @@ yyl-fs@^0.3.3:
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/yyl-fs/-/yyl-fs-0.3.3.tgz#aa409a5ea451cd0da287315665f338b1a24d4324"
   integrity sha512-3I+zY97ZJz91whuiBcdv3qdTQzErI8Dm2YSfJNK3XIAXmzWOSj1nSf6x59KrG4buzIaS3t2LEHVq4kPSYqu/9Q==
+
+yyl-util@^2.3.8:
+  version "2.3.8"
+  resolved "https://registry.npmjs.org/yyl-util/-/yyl-util-2.3.8.tgz#5ef178f47ddc33c841add5356628c9c305836f2d"
+  integrity sha512-z4mgp4mHdyDWJmvLswB6ayBrobtEGPr80wsGkhUKCfsSzl6gD1bRWoXTbkYX4P7/wnSBkNQ+L6eDZ1HOt32qXg==
