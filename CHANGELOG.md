@@ -1,4 +1,7 @@
 # 版本信息
+## 0.1.3 (2020-10-22)
+* feat: serveYylSsr({ render }) render 补充 error 的返回类型处理
+
 ## 0.1.2 (2020-10-20)
 * feat: 调整 types
 

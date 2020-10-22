@@ -1,13 +1,19 @@
 /// <reference types="node" />
-import * as http from "http";
+import * as http from 'http'
 
-declare function serveYylSsr<R extends http.OutgoingMessage, I extends http.IncomingMessage>(op: serveYylSsr.ServeYylSsrOption<R, I>): serveYylSsr.RequestHandler<R, I>
+declare function serveYylSsr<
+  R extends http.OutgoingMessage,
+  I extends http.IncomingMessage
+>(op: serveYylSsr.ServeYylSsrOption<R, I>): serveYylSsr.RequestHandler<R, I>
 
 declare namespace serveYylSsr {
   /** next function */
   type NextFunction = (err?: any) => void
   /** render option */
-  interface ServeYylSsrOptionRenderOption<R extends http.OutgoingMessage, I extends http.IncomingMessage> {
+  interface ServeYylSsrOptionRenderOption<
+    R extends http.OutgoingMessage,
+    I extends http.IncomingMessage
+  > {
     res: R
     req: I
     next: NextFunction
@@ -16,10 +22,17 @@ declare namespace serveYylSsr {
   type LoggerType = 'info' | 'error' | 'warn' | 'success'
   /** 日志接收函数 */
   type Logger = (type: LoggerType, args: any[]) => void
+  /** render 返回结果 */
+  type RenderResult = string | Error | void
   /** serveYylSsr option */
-  interface ServeYylSsrOption<R extends http.OutgoingMessage, I extends http.IncomingMessage> {
+  interface ServeYylSsrOption<
+    R extends http.OutgoingMessage,
+    I extends http.IncomingMessage
+  > {
     /** 渲染 */
-    render(op: ServeYylSsrOptionRenderOption<R,I>): Promise<string> | string | void 
+    render(
+      op: ServeYylSsrOptionRenderOption<R, I>
+    ): Promise<RenderResult> | RenderResult
     /** 是否处于生产环境 */
     isProduct?: boolean
     /** 缓存持续时间 */
@@ -33,7 +46,10 @@ declare namespace serveYylSsr {
   }
   /** serveYylSsr return */
 
-  interface RequestHandler<R extends http.OutgoingMessage, I extends http.IncomingMessage> {
+  interface RequestHandler<
+    R extends http.OutgoingMessage,
+    I extends http.IncomingMessage
+  > {
     (request: I, response: R, next: () => void): any
   }
 }
