@@ -1,4 +1,7 @@
 # 版本信息
+## 0.1.4 (2020-10-22)
+* fix: 修复 serveYylSsr({ cacheExpire }) cacheExpire 为 0 时报错的问题
+
 ## 0.1.3 (2020-10-22)
 * feat: serveYylSsr({ render }) render 补充 error 的返回类型处理
 
