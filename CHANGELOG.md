@@ -1,4 +1,6 @@
 # 版本信息
+## 0.1.5 (2020-11-05)
+* fix: 修复 serveYylSsr({}) 对于 `path/to/a.html?asdf` 不命中问题
 ## 0.1.4 (2020-10-22)
 * fix: 修复 serveYylSsr({ cacheExpire }) cacheExpire 为 0 时报错的问题
 

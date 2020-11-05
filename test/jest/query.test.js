@@ -63,6 +63,14 @@ test('query test', async () => {
   visit('path/to/abc#abc')
   await waitFor(1000)
   visit('path/to/abc&abc')
+  await waitFor(1000)
+  visit('path/to/abc.html')
+  await waitFor(1000)
+  visit('path/to/abc.html?a=1')
+  visit('path/to/abc.html#b=1')
+  visit('path/to/abc.html?debug#a=1')
+  visit('path/to/abc.html#debug?a=1&b=1')
+  visit('path/to/abc.html&b=1')
 
   /** 验证 */
   await waitFor(500)
@@ -77,7 +85,14 @@ test('query test', async () => {
     '[path/to/abc] - 写入缓存成功',
     '[path/to/abc] - 读取缓存成功',
     '[path/to/abc] - 读取缓存失败:缓存已失效',
-    '[path/to/abc] - 写入缓存成功'
+    '[path/to/abc] - 写入缓存成功',
+    '[path/to/abc.html] - 读取缓存失败:缓存不存在',
+    '[path/to/abc.html] - 写入缓存成功',
+    '[path/to/abc.html] - 读取缓存成功',
+    '[path/to/abc.html] - 读取缓存成功',
+    '[path/to/abc.html] - 读取缓存成功',
+    '[path/to/abc.html] - 读取缓存成功',
+    '[path/to/abc.html] - 读取缓存成功'
   ])
 
   /** 文件内容验证 */
