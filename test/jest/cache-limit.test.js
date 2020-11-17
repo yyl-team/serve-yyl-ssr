@@ -31,8 +31,8 @@ test('cache limit test', async () => {
         }, 200)
       })
     },
-    logger(type, args) {
-      logs.push([type, args])
+    logger(props) {
+      logs.push(props)
     }
   })
 
@@ -68,8 +68,8 @@ test('cache limit test', async () => {
   /** 验证 */
   await waitFor(2000)
   expect(
-    logs.map((arr) => {
-      return arr[1].join(' ').replace(/\([^)]*\)/, '')
+    logs.map((props) => {
+      return `[${props.url}] - ${props.args.join(' ').replace(/\([^)]*\)/, '')}`
     })
   ).toEqual([
     '[path/to/abc] - 读取缓存失败:缓存不存在',

@@ -20,8 +20,16 @@ declare namespace serveYylSsr {
   }
   /** 日志类型 */
   type LoggerType = 'info' | 'error' | 'warn' | 'success'
+  interface LoggerProps {
+    /** 类型 */
+    type: LoggerType
+    /** 请求url */
+    url: string
+    /** 参数 */
+    args: any[]
+  }
   /** 日志接收函数 */
-  type Logger = (type: LoggerType, args: any[]) => void
+  type Logger = (props: LoggerProps) => void
   /** render 返回结果 */
   type RenderResult = [ Error | undefined, string | undefined ] | string
   /** serveYylSsr option */

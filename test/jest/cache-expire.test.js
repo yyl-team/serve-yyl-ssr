@@ -30,8 +30,8 @@ test('cache-expire test', async () => {
         }, 200)
       })
     },
-    logger(type, args) {
-      logs.push([type, args])
+    logger(props) {
+      logs.push(props)
     }
   })
 
@@ -67,8 +67,8 @@ test('cache-expire test', async () => {
   /** 验证 */
   await waitFor(500)
   expect(
-    logs.map((arr) => {
-      return arr[1].join(' ').replace(/\([^)]*\)/, '')
+    logs.map((props) => {
+      return `[${props.url}] - ${props.args.join(' ').replace(/\([^)]*\)/, '')}`
     })
   ).toEqual([])
 
