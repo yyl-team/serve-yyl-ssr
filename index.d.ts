@@ -24,7 +24,7 @@ declare namespace serveYylSsr {
     /** 类型 */
     type: LoggerType
     /** 请求url */
-    url: string
+    path: string
     /** 参数 */
     args: any[]
   }

@@ -69,7 +69,9 @@ test('cache limit test', async () => {
   await waitFor(2000)
   expect(
     logs.map((props) => {
-      return `[${props.url}] - ${props.args.join(' ').replace(/\([^)]*\)/, '')}`
+      return `[${props.path}] - ${props.args
+        .join(' ')
+        .replace(/\([^)]*\)/, '')}`
     })
   ).toEqual([
     '[path/to/abc] - 读取缓存失败:缓存不存在',
