@@ -34,6 +34,7 @@
     "prettier": "prettier --write ./*.js ./",
     "test": "jest ./test/jest/",
     "test:cache-limit": "jest ./test/jest/cache-limit.test.js",
+    "test:cache-leak": "jest ./test/jest/cache-leak.test.js",
     "test:query": "jest ./test/jest/query.test.js",
     "test:render-error": "jest ./test/jest/render-error.test.js",
     "test:cache-expire": "jest ./test/jest/cache-expire.test.js",
