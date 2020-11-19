@@ -43,6 +43,8 @@
     "prepublishOnly": "npm run prettier & npm test"
   },
   "dependencies": {
+    "dayjs": "^1.9.6",
+    "redis": "^3.0.2",
     "yyl-fs": "^0.3.3",
     "yyl-util": "^2.3.8"
   },
