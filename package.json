@@ -38,6 +38,8 @@
     "test:query": "jest ./test/jest/query.test.js",
     "test:render-error": "jest ./test/jest/render-error.test.js",
     "test:cache-expire": "jest ./test/jest/cache-expire.test.js",
+    "cbs": "node --inspect ./test/case/base/server.js",
+    "cbc": "node ./test/case/base/client.js",
     "prepublishOnly": "npm run prettier & npm test"
   },
   "dependencies": {
@@ -47,6 +49,7 @@
   "devDependencies": {
     "eslint": "^7.9.0",
     "eslint-config-yyl-node": "^0.1.2",
+    "express": "^4.17.1",
     "jest": "26.4.2",
     "prettier": "^2.1.2"
   },

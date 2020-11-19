@@ -4,14 +4,6 @@ const fs = require('fs')
 const FRAG_PATH = path.join(__dirname, '../../__frag')
 const serveYylSsr = require('../..')
 
-function waitFor(t) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve()
-    }, t)
-  })
-}
-
 test('cache leak test', async () => {
   const HTML_Path = path.join(__dirname, '../data/cache.html').toString()
   const cachePath = path.join(FRAG_PATH, '.cache-leak-yyl-ssr-cache')
@@ -21,7 +13,7 @@ test('cache leak test', async () => {
   await extFs.removeFiles(cachePath, true)
 
   const checkFn = serveYylSsr({
-    cacheExpire: 1000,
+    cacheExpire: 5000,
     cacheLimit: 200,
     cachePath,
     render() {
@@ -67,6 +59,7 @@ test('cache leak test', async () => {
   }
 
   const checkArr = memorysUsed.map((d) => d - memorysUsed[0])
+  console.log(Array.from(checkFn.cacheMap.keys()))
 
   expect(checkArr).not.toEqual(checkArr.sort())
   /** 清除文件 */
