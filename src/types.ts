@@ -1,3 +1,4 @@
+import { IncomingMessage, OutgoingMessage } from 'http'
 /** 日志-接收函数 */
 export type Logger = (props: LoggerProps) => void
 
@@ -9,11 +10,19 @@ export enum LogType {
 }
 
 /** 日志-参数 */
-interface LoggerProps {
+export interface LoggerProps {
   /** 类型 */
   type: LogType
   /** 请求url */
   path: string
   /** 参数 */
   args: any[]
+}
+
+export interface Res extends OutgoingMessage {
+  send(ctx: string): void
+}
+
+export interface Req extends IncomingMessage {
+  url: string
 }

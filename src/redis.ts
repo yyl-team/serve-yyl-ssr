@@ -27,7 +27,7 @@ export interface SsrRedis {
   init(option: SsrRedisOption): SsrRedisHandle
 }
 
-interface RedisData {
+export interface RedisData {
   [key: string]: string
 }
 

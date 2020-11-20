@@ -1,9 +1,6 @@
-import { OutgoingMessage, IncomingMessage } from 'http'
+import { Req, Res } from './types'
 import { YylSsr, YylSsrOption } from './yylSsr'
-function serveYylSsr<
-  O extends OutgoingMessage = OutgoingMessage,
-  I extends IncomingMessage = IncomingMessage
->(option: YylSsrOption<O, I>) {
+function serveYylSsr<O extends Res = Res, I extends Req = Req>(option: YylSsrOption<O, I>) {
   const ssr = new YylSsr(option)
   return ssr.apply()
 }
