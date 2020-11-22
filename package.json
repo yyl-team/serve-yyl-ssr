@@ -35,6 +35,7 @@
     "release": "yyr",
     "prepublishOnly": "npm run prettier & npm run build",
     "test": "jest ./test/jest/ --detectOpenHandles",
+    "pretest": "npm run d",
     "cbs": "node ./test/case/base/server.js"
   },
   "devDependencies": {

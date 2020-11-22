@@ -3,9 +3,8 @@ const path = require('path')
 const util = require('yyl-util')
 const express = require('express')
 const http = require('http')
-const serveYylSse = require('../../')
 const { serveYylSsr, ssrRedis } = require('../../')
-const request = require('supertest')
+const supertest = require('supertest')
 const HTML_PATH = path.join(__dirname, '../../data/cache.html')
 
 test('usage test', async () => {
@@ -25,6 +24,7 @@ test('usage test', async () => {
 
 
   // + test
+  const request = supertest(app)
   const pathnames = [
     '/a',
     '/b',
@@ -35,12 +35,10 @@ test('usage test', async () => {
 
   await util.waitFor(1000)
   pathnames.forEach((pathname) => {
-    request(app).get(pathname).end()
+    request.get(pathname)
   })
 
-
   await util.waitFor(1000)
-  console.log(logs)
   // - test
 
   expect(logs).toEqual([])
