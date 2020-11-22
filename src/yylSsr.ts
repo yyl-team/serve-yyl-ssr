@@ -212,15 +212,17 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
 
     const nowStr = dayjs().format('YYYY-MM-DD hh:mm:ss')
     const pathname = formatUrl(url)
-    this.redis?.set<CacheData>(pathname, {
-      date: nowStr,
-      context: `${context}<!-- rendered at ${nowStr}  -->`
-    })
-    this.log({
-      type: LogType.Info,
-      path: pathname,
-      args: ['写入缓存成功']
-    })
+    if (this.redis) {
+      this.redis.set<CacheData>(pathname, {
+        date: nowStr,
+        context: `${context}<!-- rendered at ${nowStr}  -->`
+      })
+      this.log({
+        type: LogType.Info,
+        path: pathname,
+        args: ['写入缓存成功']
+      })
+    }
   }
 
   /** 缓存提取 */

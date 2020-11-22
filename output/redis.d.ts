@@ -14,6 +14,8 @@ export interface SsrRedisHandle {
 }
 /** ssr redis */
 export interface SsrRedis {
+    /** 是否支持 redis */
+    isSupported: boolean;
     /** 日志输出设置 */
     log: Logger;
     /** redis client */

@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const express = require('express')
-const serveYylSsr = require('../../..')
+const { serveYylSsr } = require('../../..')
 const util = require('yyl-util')
 
 const HTML_PATH = path.join(__dirname, '../../data/cache.html')

@@ -34,12 +34,14 @@
     "w": "rollup --watch --config ./rollup.config.js",
     "release": "yyr",
     "prepublishOnly": "npm run prettier & npm run build",
-    "test": "jest ./test/jest/"
+    "test": "jest ./test/jest/ --detectOpenHandles",
+    "cbs": "node ./test/case/base/server.js"
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
     "eslint": "^6.8.0",
     "eslint-config-yyl-react": "^0.1.9",
+    "express": "^4.17.1",
     "jest": "26.4.2",
     "prettier": "^2.0.4",
     "rollup": "^1.9.0",
@@ -48,6 +50,7 @@
     "rollup-plugin-node-resolve": "^4.2.1",
     "rollup-plugin-terser": "^5.3.0",
     "rollup-plugin-typescript2": "^0.20.1",
+    "supertest": "^6.0.1",
     "typescript": "^3.8.3",
     "yyl-release": "0.1.0"
   },

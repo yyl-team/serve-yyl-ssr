@@ -17,6 +17,8 @@ export interface SsrRedisHandle {
 
 /** ssr redis */
 export interface SsrRedis {
+  /** 是否支持 redis */
+  isSupported: boolean
   /** 日志输出设置 */
   log: Logger
   /** redis client */
@@ -32,18 +34,37 @@ export interface RedisData {
 }
 
 export const ssrRedis: SsrRedis = {
+  isSupported: true,
   inited: false,
   log: () => {},
   client: undefined,
   init({ port, log }) {
     if (!this.inited) {
-      this.client = redis.createClient({ port: port || 6379 })
-      this.client.on('error', (er) => {
+      const iPort = port || 6379
+      this.client = redis.createClient({ port: iPort })
+      this.client.on('ready', () => {
+        this.isSupported = true
         log({
-          type: LogType.Error,
+          type: LogType.Info,
           path: 'system',
-          args: ['redis 发生错误', er]
+          args: ['redis 准备好了']
         })
+      })
+      this.client.on('error', (er) => {
+        if (`${er?.message}`.indexOf('ECONNREFUSED') !== -1) {
+          this.isSupported = false
+          log({
+            type: LogType.Warn,
+            path: 'system',
+            args: [`系统 redis 未启动, 端口: ${iPort}`]
+          })
+        } else {
+          log({
+            type: LogType.Error,
+            path: 'system',
+            args: ['redis 发生错误', er]
+          })
+        }
       })
     }
 
@@ -53,21 +74,53 @@ export const ssrRedis: SsrRedis = {
     return {
       get: <T extends RedisData = {}>(key: string) => {
         return new Promise<T | undefined>((resolve) => {
-          this.client?.hgetall(key, (err, reply) => {
-            if (err) {
-              resolve(undefined)
-            }
-            resolve(reply as T)
-          })
+          if (!this.isSupported) {
+            log({
+              type: LogType.Warn,
+              path: 'system',
+              args: [`redis 获取 [${key}] 失败, redis 未启动`]
+            })
+            resolve(undefined)
+          } else if (this.client) {
+            this.client.hgetall(key, (err, reply) => {
+              if (err) {
+                resolve(undefined)
+              }
+              resolve(reply as T)
+            })
+          } else {
+            log({
+              type: LogType.Error,
+              path: 'system',
+              args: [`redis 获取 [${key}] 失败, this.client 未初始化`]
+            })
+          }
         })
       },
       set: (key, val) => {
         Object.keys(val).forEach((subKey) => {
-          this.client?.hmset(key, subKey, val[subKey])
+          if (!this.isSupported) {
+            log({
+              type: LogType.Warn,
+              path: 'system',
+              args: [`redis 设置 [${key}] 失败, redis 未启动`]
+            })
+          } else if (this.client) {
+            this.client.hmset(key, subKey, val[subKey])
+          } else {
+            log({
+              type: LogType.Error,
+              path: 'system',
+              args: [`redis 设置 [${key}] 失败, this.client 未初始化`]
+            })
+          }
         })
       },
       end: () => {
-        this.client?.end()
+        if (this.client) {
+          this.client.end()
+        }
+        this.inited = false
       }
     }
   }
