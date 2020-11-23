@@ -48,7 +48,7 @@ test('usage test', async () => {
   await util.waitFor(1000)
   // - test
 
-  expect(logs).toEqual([
+  expect(logs.map((x) => x.replace(/\([^)]*\)/g, ''))).toEqual([
     '[info] - [system] redis 准备好了',
     `[info] - [/a-${hash}] 写入缓存成功`,
     `[info] - [/b-${hash}] 写入缓存成功`,
