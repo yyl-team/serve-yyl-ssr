@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.1
+ * serve-yyl-ssr cjs 0.3.2
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
@@ -304,7 +304,7 @@ class YylSsr {
         if (!cacheExpire) {
             return;
         }
-        const nowStr = dayjs().format('YYYY-MM-DD hh:mm:ss');
+        const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss');
         const pathname = formatUrl(url);
         if (this.redis) {
             this.redis.set(pathname, {
@@ -328,14 +328,18 @@ class YylSsr {
             }
             const pathname = formatUrl(url);
             const now = new Date();
+            const nowStr = dayjs(now).format('YY-MM-DD HH:mm:ss');
             const curCache = yield ((_a = this.redis) === null || _a === void 0 ? void 0 : _a.get(pathname));
+            const cacheSecond = cacheExpire / 1000;
             if (curCache) {
                 // 缓存已失效
                 if (+now - +new Date(curCache.date) > cacheExpire) {
                     this.log({
                         type: exports.LogType.Info,
                         path: pathname,
-                        args: [`读取缓存失败:缓存已失效(创建时间:${curCache.date})`]
+                        args: [
+                            `读取缓存失败:缓存已失效(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+                        ]
                     });
                 }
                 else {
@@ -350,7 +354,9 @@ class YylSsr {
                         this.log({
                             type: exports.LogType.Info,
                             path: pathname,
-                            args: [`读取缓存成功`]
+                            args: [
+                                `读取缓存成功(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+                            ]
                         });
                         return curCache.context;
                     }

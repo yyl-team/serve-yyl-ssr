@@ -41,7 +41,7 @@ export interface YylSsrOption<O extends Res, I extends Req> {
   /** 渲染 */
   render: (op: ServeYylSsrOptionRenderOption<O, I>) => Promise<RenderResult> | RenderResult
   /** 是否处于开发环境 */
-  dev: boolean
+  dev?: boolean
   /** 日志输出回调 */
   logger?: Logger
   /** redis 服务端口 */
@@ -214,7 +214,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
       return
     }
 
-    const nowStr = dayjs().format('YYYY-MM-DD hh:mm:ss')
+    const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss')
     const pathname = formatUrl(url)
     if (this.redis) {
       this.redis.set<CacheData>(pathname, {
@@ -237,14 +237,18 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     }
     const pathname = formatUrl(url)
     const now = new Date()
+    const nowStr = dayjs(now).format('YY-MM-DD HH:mm:ss')
     const curCache = await this.redis?.get<CacheData>(pathname)
+    const cacheSecond = cacheExpire / 1000
     if (curCache) {
       // 缓存已失效
       if (+now - +new Date(curCache.date) > cacheExpire) {
         this.log({
           type: LogType.Info,
           path: pathname,
-          args: [`读取缓存失败:缓存已失效(创建时间:${curCache.date})`]
+          args: [
+            `读取缓存失败:缓存已失效(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+          ]
         })
       } else {
         if (!curCache.context.match(HTML_FINISHED_REG)) {
@@ -257,7 +261,9 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
           this.log({
             type: LogType.Info,
             path: pathname,
-            args: [`读取缓存成功`]
+            args: [
+              `读取缓存成功(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+            ]
           })
           return curCache.context
         }

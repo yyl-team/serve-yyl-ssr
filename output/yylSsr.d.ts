@@ -16,7 +16,7 @@ export interface YylSsrOption<O extends Res, I extends Req> {
     /** 渲染 */
     render: (op: ServeYylSsrOptionRenderOption<O, I>) => Promise<RenderResult> | RenderResult;
     /** 是否处于开发环境 */
-    dev: boolean;
+    dev?: boolean;
     /** 日志输出回调 */
     logger?: Logger;
     /** redis 服务端口 */
