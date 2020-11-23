@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.0
+ * serve-yyl-ssr cjs 0.3.1
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
@@ -40,12 +40,11 @@ function __awaiter(thisArg, _arguments, P, generator) {
 }
 
 /** 日志-类型 */
-var LogType;
 (function (LogType) {
     LogType["Info"] = "info";
     LogType["Error"] = "error";
     LogType["Warn"] = "warn";
-})(LogType || (LogType = {}));
+})(exports.LogType || (exports.LogType = {}));
 
 const ssrRedis = {
     isSupported: true,
@@ -59,7 +58,7 @@ const ssrRedis = {
             this.client.on('ready', () => {
                 this.isSupported = true;
                 log({
-                    type: LogType.Info,
+                    type: exports.LogType.Info,
                     path: 'system',
                     args: ['redis 准备好了']
                 });
@@ -68,14 +67,14 @@ const ssrRedis = {
                 if (`${er === null || er === void 0 ? void 0 : er.message}`.indexOf('ECONNREFUSED') !== -1) {
                     this.isSupported = false;
                     log({
-                        type: LogType.Warn,
+                        type: exports.LogType.Warn,
                         path: 'system',
                         args: [`系统 redis 未启动, 端口: ${iPort}`]
                     });
                 }
                 else {
                     log({
-                        type: LogType.Error,
+                        type: exports.LogType.Error,
                         path: 'system',
                         args: ['redis 发生错误', er]
                     });
@@ -89,7 +88,7 @@ const ssrRedis = {
                 return new Promise((resolve) => {
                     if (!this.isSupported) {
                         log({
-                            type: LogType.Warn,
+                            type: exports.LogType.Warn,
                             path: 'system',
                             args: [`redis 获取 [${key}] 失败, redis 未启动`]
                         });
@@ -105,7 +104,7 @@ const ssrRedis = {
                     }
                     else {
                         log({
-                            type: LogType.Error,
+                            type: exports.LogType.Error,
                             path: 'system',
                             args: [`redis 获取 [${key}] 失败, this.client 未初始化`]
                         });
@@ -116,7 +115,7 @@ const ssrRedis = {
                 Object.keys(val).forEach((subKey) => {
                     if (!this.isSupported) {
                         log({
-                            type: LogType.Warn,
+                            type: exports.LogType.Warn,
                             path: 'system',
                             args: [`redis 设置 [${key}] 失败, redis 未启动`]
                         });
@@ -126,7 +125,7 @@ const ssrRedis = {
                     }
                     else {
                         log({
-                            type: LogType.Error,
+                            type: exports.LogType.Error,
                             path: 'system',
                             args: [`redis 设置 [${key}] 失败, this.client 未初始化`]
                         });
@@ -235,20 +234,20 @@ class YylSsr {
                         // error
                         if (iCtx[0]) {
                             this.log({
-                                type: LogType.Error,
+                                type: exports.LogType.Error,
                                 path: pathname,
                                 args: ['渲染出错', iCtx[0]]
                             });
                             if (iCtx[1]) {
                                 this.log({
-                                    type: LogType.Info,
+                                    type: exports.LogType.Info,
                                     path: pathname,
                                     args: ['读取后备 html', iCtx[1]]
                                 });
                             }
                             else {
                                 this.log({
-                                    type: LogType.Warn,
+                                    type: exports.LogType.Warn,
                                     path: pathname,
                                     args: ['没有设置后备 html, 跳 server error 逻辑']
                                 });
@@ -291,7 +290,7 @@ class YylSsr {
             }
             else {
                 this.log({
-                    type: LogType.Warn,
+                    type: exports.LogType.Warn,
                     path: pathname,
                     args: ['不命中规则, next']
                 });
@@ -313,7 +312,7 @@ class YylSsr {
                 context: `${context}<!-- rendered at ${nowStr}  -->`
             });
             this.log({
-                type: LogType.Info,
+                type: exports.LogType.Info,
                 path: pathname,
                 args: ['写入缓存成功']
             });
@@ -334,7 +333,7 @@ class YylSsr {
                 // 缓存已失效
                 if (+now - +new Date(curCache.date) > cacheExpire) {
                     this.log({
-                        type: LogType.Info,
+                        type: exports.LogType.Info,
                         path: pathname,
                         args: [`读取缓存失败:缓存已失效(创建时间:${curCache.date})`]
                     });
@@ -342,14 +341,14 @@ class YylSsr {
                 else {
                     if (!curCache.context.match(HTML_FINISHED_REG)) {
                         this.log({
-                            type: LogType.Warn,
+                            type: exports.LogType.Warn,
                             path: pathname,
                             args: [`读取缓存失败，缓存内容不完整`, curCache.context]
                         });
                     }
                     else {
                         this.log({
-                            type: LogType.Info,
+                            type: exports.LogType.Info,
                             path: pathname,
                             args: [`读取缓存成功`]
                         });
@@ -372,5 +371,6 @@ function serveYylSsr(option) {
     return ssr.apply();
 }
 
+exports.YylSsr = YylSsr;
 exports.serveYylSsr = serveYylSsr;
 exports.ssrRedis = ssrRedis;
