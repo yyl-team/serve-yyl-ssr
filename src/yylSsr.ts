@@ -69,7 +69,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
   /** 日志函数 */
   private logger: YylSsrProperty<O, I>['logger'] = () => {}
   /** 渲染函数 */
-  private render: YylSsrProperty<O, I>['render'] = () => [new Error('not ready'), undefined]
+  private render: YylSsrProperty<O, I>['render'] = () => [new Error('render 未赋值'), undefined]
   /** 缓存操作句柄 */
   private redis?: SsrRedisHandle
   /** 缓存有效时间 */
@@ -111,6 +111,11 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     // 日志接口
     if (logger) {
       this.logger = logger
+    }
+
+    // render 赋值
+    if (render) {
+      this.render = render
     }
 
     // redis 初始化

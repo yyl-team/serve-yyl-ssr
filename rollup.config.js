@@ -42,18 +42,5 @@ export default [
     ],
     plugins: config.plugins,
     external: config.external
-  },
-  {
-    input: config.input,
-    output: [
-      {
-        file: './output/index.esm.js',
-        format: 'esm',
-        banner: buildBanner('esm'),
-        sourcemap: false
-      }
-    ],
-    plugins: config.plugins,
-    external: config.external
   }
 ]

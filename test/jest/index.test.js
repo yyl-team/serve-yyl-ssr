@@ -5,7 +5,7 @@ const express = require('express')
 const http = require('http')
 const { serveYylSsr, ssrRedis } = require('../../')
 const supertest = require('supertest')
-const HTML_PATH = path.join(__dirname, '../../data/cache.html')
+const HTML_PATH = path.join(__dirname, '../data/cache.html')
 
 test('usage test', async () => {
   // prepare
@@ -33,9 +33,12 @@ test('usage test', async () => {
     '/a'
   ]
 
-  await util.waitFor(1000)
-  pathnames.forEach((pathname) => {
-    request.get(pathname)
+  await util.forEach(pathnames, async (pathname) => {
+    await new Promise((resolve) => {
+      request.get(pathname).end(() => {
+        resolve()
+      })
+    })
   })
 
   await util.waitFor(1000)

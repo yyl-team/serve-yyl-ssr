@@ -1,7 +1,6 @@
 {
   "version": "0.3.0",
   "main": "output/index.js",
-  "module": "output/index.esm.js",
   "types": "output/index.d.ts",
   "eslintConfig": {
     "env": {

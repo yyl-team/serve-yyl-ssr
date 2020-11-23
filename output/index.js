@@ -163,7 +163,7 @@ class YylSsr {
         /** 日志函数 */
         this.logger = () => { };
         /** 渲染函数 */
-        this.render = () => [new Error('not ready'), undefined];
+        this.render = () => [new Error('render 未赋值'), undefined];
         /** 缓存有效时间 */
         this.cacheExpire = 1000 * 60;
         /** 对外函数 */
@@ -200,6 +200,10 @@ class YylSsr {
         // 日志接口
         if (logger) {
             this.logger = logger;
+        }
+        // render 赋值
+        if (render) {
+            this.render = render;
         }
         // redis 初始化
         this.redis = ssrRedis.init({
