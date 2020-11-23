@@ -132,14 +132,14 @@ const ssrRedis = {
                         });
                     }
                 });
-            },
-            end: () => {
-                if (this.client) {
-                    this.client.end();
-                }
-                this.inited = false;
             }
         };
+    },
+    end() {
+        if (this.client) {
+            this.client.flushdb();
+        }
+        this.inited = false;
     }
 };
 
@@ -224,6 +224,7 @@ class YylSsr {
                     case 'string':
                         iCtx = toCtx(ctx);
                         this.setCache(pathname, iCtx);
+                        res.send(iCtx);
                         break;
                     case 'promise':
                         iCtx = toCtx(ctx);
@@ -339,11 +340,11 @@ class YylSsr {
                     });
                 }
                 else {
-                    if (curCache.context.match(HTML_FINISHED_REG)) {
+                    if (!curCache.context.match(HTML_FINISHED_REG)) {
                         this.log({
                             type: LogType.Warn,
                             path: pathname,
-                            args: [`读取缓存失败，缓存内容不完整`]
+                            args: [`读取缓存失败，缓存内容不完整`, curCache.context]
                         });
                     }
                     else {

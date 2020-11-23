@@ -1,6 +1,4 @@
 import path from 'path'
-import extFs from 'yyl-fs'
-import fs from 'fs'
 import { type } from 'yyl-util'
 import dayjs from 'dayjs'
 import { ssrRedis, SsrRedisHandle, RedisData } from './redis'
@@ -137,6 +135,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
         case 'string':
           iCtx = toCtx<string>(ctx)
           this.setCache(pathname, iCtx)
+          res.send(iCtx)
           break
 
         case 'promise':
@@ -248,11 +247,11 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
           args: [`读取缓存失败:缓存已失效(创建时间:${curCache.date})`]
         })
       } else {
-        if (curCache.context.match(HTML_FINISHED_REG)) {
+        if (!curCache.context.match(HTML_FINISHED_REG)) {
           this.log({
             type: LogType.Warn,
             path: pathname,
-            args: [`读取缓存失败，缓存内容不完整`]
+            args: [`读取缓存失败，缓存内容不完整`, curCache.context]
           })
         } else {
           this.log({

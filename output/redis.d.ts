@@ -9,8 +9,6 @@ export interface SsrRedisHandle {
     get<T extends RedisData = {}>(key: string): Promise<T | undefined>;
     /** 设置缓存 */
     set<T extends RedisData = {}>(key: string, val: T): void;
-    /** 停止 redis */
-    end(): void;
 }
 /** ssr redis */
 export interface SsrRedis {
@@ -24,6 +22,8 @@ export interface SsrRedis {
     inited: boolean;
     /** 初始化 redis */
     init(option: SsrRedisOption): SsrRedisHandle;
+    /** 终止 链接 redis */
+    end(): void;
 }
 export interface RedisData {
     [key: string]: string;

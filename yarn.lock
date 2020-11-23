@@ -5336,7 +5336,7 @@ yyl-fs@^0.3.3:
   resolved "https://registry.npmjs.org/yyl-fs/-/yyl-fs-0.3.3.tgz#aa409a5ea451cd0da287315665f338b1a24d4324"
   integrity sha512-3I+zY97ZJz91whuiBcdv3qdTQzErI8Dm2YSfJNK3XIAXmzWOSj1nSf6x59KrG4buzIaS3t2LEHVq4kPSYqu/9Q==
 
-yyl-os@^0.11.1:
+yyl-os@^0.11.1, yyl-os@^0.11.2:
   version "0.11.2"
   resolved "https://registry.npmjs.org/yyl-os/-/yyl-os-0.11.2.tgz#7d25d95f9fc8d5a8f7bb8b550739df059c5ae101"
   integrity sha512-PIeJLmkIRSwR0OeM3IhL2AKDPLwRBu5ZXjZDHzZ2Y+J1g907FbZ2nreMYo8hBDKT8aKdw0hr2Fg3C8z7dDWqqQ==

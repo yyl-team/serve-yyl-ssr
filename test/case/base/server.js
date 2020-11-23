@@ -8,15 +8,18 @@ const HTML_PATH = path.join(__dirname, '../../data/cache.html')
 
 const app = express()
 
-app.get('/*', serveYylSsr({
-  cacheExpire: 10000,
-  async render ({ req, res}) {
-    await util.waitFor(200)
-    return fs.readFileSync(HTML_PATH).toString()
-  },
-  logger({ type, path, args}) {
-    console.log(`[${type}] - [${path}]`, ...args)
-  }
-}))
+app.get(
+  '/*',
+  serveYylSsr({
+    cacheExpire: 10000,
+    async render({ req, res }) {
+      await util.waitFor(200)
+      return fs.readFileSync(HTML_PATH).toString()
+    },
+    logger({ type, path, args }) {
+      console.log(`[${type}] - [${path}]`, ...args)
+    }
+  })
+)
 
 app.listen(5000)

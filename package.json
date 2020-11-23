@@ -52,6 +52,8 @@
     "rollup-plugin-typescript2": "^0.20.1",
     "supertest": "^6.0.1",
     "typescript": "^3.8.3",
+    "yyl-fs": "^0.3.3",
+    "yyl-os": "^0.11.2",
     "yyl-release": "0.1.0"
   },
   "name": "serve-yyl-ssr",
@@ -62,7 +64,6 @@
     "@types/redis": "^2.8.28",
     "dayjs": "^1.9.6",
     "redis": "^3.0.2",
-    "yyl-fs": "^0.3.3",
     "yyl-util": "^2.3.8"
   }
 }
