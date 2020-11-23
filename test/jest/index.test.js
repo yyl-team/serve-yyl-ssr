@@ -1,95 +1,62 @@
-const path = require('path')
 const fs = require('fs')
-const FRAG_PATH = path.join(__dirname, '../../__frag')
-const serveYylSsr = require('../../')
-const extFs = require('yyl-fs')
-
-function waitFor(t) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve()
-    }, t)
-  })
-}
+const path = require('path')
+const util = require('yyl-util')
+const express = require('express')
+const http = require('http')
+const { serveYylSsr, ssrRedis } = require('../../')
+const supertest = require('supertest')
+const dayjs = require('dayjs')
+const HTML_PATH = path.join(__dirname, '../data/cache.html')
+const { runCMD } = require('yyl-os')
 
 test('usage test', async () => {
-  const HTML_STR = '<html>hello test</html>'
-  const cachePath = path.join(FRAG_PATH, '.index-yyl-ssr-cache')
-  const logs = []
-
-  /** 清除文件 */
-  await extFs.removeFiles(cachePath, true)
-
-  const checkFn = serveYylSsr({
-    cacheExpire: 1000,
-    cachePath,
-    render() {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(HTML_STR)
-        }, 200)
-      })
-    },
-    logger(props) {
-      logs.push(props)
-    }
-  })
-
-  /** 检查是否会自动创建 cache 目录 */
-  expect(fs.existsSync(cachePath)).toEqual(true)
-
-  const results = []
-  const visit = (url) => {
-    checkFn(
-      {
-        url
-      },
-      {
-        send(ctx) {
-          results.push(['send', ctx])
-        }
-      },
-      (er) => {
-        results.push(['next', er])
-      }
-    )
+  const version = await runCMD('redis-server -v')
+  if (!version) {
+    throw new Error('请先启动 redis-server 再进行自测')
   }
 
-  /** 用例执行 */
-  visit('path/to/abc')
-  await waitFor(100)
-  visit('path/to/abc')
-  await waitFor(300)
-  visit('path/to/abc')
-  await waitFor(1000)
-  visit('path/to/abc')
-
-  /** 验证 */
-  await waitFor(500)
-  expect(
-    logs.map((props) => {
-      return `[${props.path}] - ${props.args
-        .join(' ')
-        .replace(/\([^)]*\)/, '')}`
+  // prepare
+  const app = express()
+  const logs = []
+  app.get(
+    '/*',
+    serveYylSsr({
+      cacheExpire: 10000,
+      async render({ req, res }) {
+        await util.waitFor(200)
+        return fs.readFileSync(HTML_PATH).toString()
+      },
+      logger({ type, path, args }) {
+        logs.push(`[${type}] - [${path}] ${args.join(' ')}`)
+      }
     })
-  ).toEqual([
-    '[path/to/abc] - 读取缓存失败:缓存不存在',
-    '[path/to/abc] - 读取缓存失败:缓存不存在',
-    '[path/to/abc] - 写入缓存成功',
-    '[path/to/abc] - 写入缓存成功',
-    '[path/to/abc] - 读取缓存成功',
-    '[path/to/abc] - 读取缓存失败:缓存已失效',
-    '[path/to/abc] - 写入缓存成功'
+  )
+
+  // + test
+  const request = supertest(app)
+  const pathnames = ['/a', '/b', '/c', '/d', '/a']
+  const hash = dayjs().format('YYYY-MM-DD-hh-mm-ss')
+
+  await util.forEach(pathnames, async (pathname) => {
+    await new Promise((resolve) => {
+      request.get(`${pathname}-${hash}`).end(() => {
+        resolve()
+      })
+    })
+  })
+
+  await util.waitFor(1000)
+  // - test
+
+  expect(logs).toEqual([
+    '[info] - [system] redis 准备好了',
+    `[info] - [/a-${hash}] 写入缓存成功`,
+    `[info] - [/b-${hash}] 写入缓存成功`,
+    `[info] - [/c-${hash}] 写入缓存成功`,
+    `[info] - [/d-${hash}] 写入缓存成功`,
+    `[info] - [/a-${hash}] 读取缓存成功`
   ])
 
-  /** 文件内容验证 */
-  const cacheTagetPath = path.join(cachePath, 'path/to/abc')
-  expect(fs.existsSync(cacheTagetPath)).toEqual(true)
-  const LAST_MARK_REG = /<!-- rendered at.*$/
-  const writeFileCnt = fs.readFileSync(cacheTagetPath).toString()
-  expect(LAST_MARK_REG.test(writeFileCnt)).toEqual(true)
-  expect(writeFileCnt.replace(LAST_MARK_REG, '')).toEqual(HTML_STR)
-
-  /** 清除文件 */
-  await extFs.removeFiles(cachePath, true)
+  // end
+  ssrRedis.end()
 })
