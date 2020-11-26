@@ -26,6 +26,12 @@ export interface YylSsrOption<O extends Res, I extends Req> {
 }
 export declare type YylSsrProperty<O extends Res, I extends Req> = Required<YylSsrOption<O, I>>;
 export declare type YylSsrHandler<O extends Res, I extends Req> = () => (req: I, res: O, next: NextFunction) => void;
+export interface CtxRenderProps<O extends Res> {
+    res: O;
+    ctx: Promise<RenderResult> | RenderResult;
+    pathname: string;
+    next: NextFunction;
+}
 /** yylSsr - 类 */
 export declare class YylSsr<O extends Res = Res, I extends Req = Req> {
     /** 日志函数 */
@@ -40,7 +46,8 @@ export declare class YylSsr<O extends Res = Res, I extends Req = Req> {
     apply: YylSsrHandler<O, I>;
     /** 初始化 */
     constructor(option: YylSsrOption<O, I>);
-    private handleRender;
+    private ctxRender;
+    private ssrRender;
     /** 缓存保存 */
     private setCache;
     /** 缓存提取 */

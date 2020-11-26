@@ -62,6 +62,13 @@ export type YylSsrHandler<O extends Res, I extends Req> = () => (
   next: NextFunction
 ) => void
 
+export interface CtxRenderProps<O extends Res> {
+  res: O
+  ctx: Promise<RenderResult> | RenderResult
+  pathname: string
+  next: NextFunction
+}
+
 /** yylSsr - 类 */
 export class YylSsr<O extends Res = Res, I extends Req = Req> {
   /** 日志函数 */
@@ -76,7 +83,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
   /** 对外函数 */
   public apply: YylSsrHandler<O, I> = () => {
     return (req, res, next) => {
-      this.handleRender({ req, res, next })
+      this.ssrRender({ req, res, next })
     }
   }
 
@@ -92,7 +99,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
             } else if (/^\/webpack-dev-server/.test(req.url)) {
               next()
             } else {
-              this.handleRender({ res, req, next })
+              this.ssrRender({ res, req, next })
             }
           } else {
             next()
@@ -125,77 +132,89 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     })
   }
 
-  private async handleRender(op: ServeYylSsrOptionRenderOption<O, I>) {
-    const { req, res, next } = op
-    const pathname = formatUrl(req.url as string)
+  private ctxRender(props: CtxRenderProps<O>) {
+    const { ctx, res, pathname, next } = props
     let iCtx
     let r
-    const typeHandler = async (ctx: Promise<RenderResult> | RenderResult) => {
-      switch (type(ctx)) {
-        case 'string':
-          iCtx = toCtx<string>(ctx)
-          this.setCache(pathname, iCtx)
-          res.send(iCtx)
-          break
+    switch (type(ctx)) {
+      case 'string':
+        iCtx = toCtx<string>(ctx)
+        this.setCache(pathname, iCtx)
+        res.send(iCtx)
+        break
 
-        case 'promise':
-          iCtx = toCtx<Promise<RenderResult>>(ctx)
-          iCtx.then(typeHandler)
-          break
+      case 'promise':
+        iCtx = toCtx<Promise<RenderResult>>(ctx)
+        iCtx.then((val) => {
+          this.ctxRender({
+            ...props,
+            ctx: val
+          })
+        })
+        break
 
-        case 'array':
-          iCtx = toCtx<RenderResult>(ctx)
-          // error
-          if (iCtx[0]) {
+      case 'array':
+        iCtx = toCtx<RenderResult>(ctx)
+        // error
+        if (iCtx[0]) {
+          this.log({
+            type: LogType.Error,
+            path: pathname,
+            args: ['渲染出错', iCtx[0]]
+          })
+          if (iCtx[1]) {
             this.log({
-              type: LogType.Error,
+              type: LogType.Info,
               path: pathname,
-              args: ['渲染出错', iCtx[0]]
+              args: ['读取后备 html', iCtx[1]]
             })
-            if (iCtx[1]) {
-              this.log({
-                type: LogType.Info,
-                path: pathname,
-                args: ['读取后备 html', iCtx[1]]
-              })
-            } else {
-              this.log({
-                type: LogType.Warn,
-                path: pathname,
-                args: ['没有设置后备 html, 跳 server error 逻辑']
-              })
-              next(iCtx[0])
-            }
           } else {
-            if (type(iCtx[1]) === 'string') {
-              r = toCtx<string>(iCtx[1])
-              this.setCache(pathname, r)
-              res.send(r)
-            } else if (type(iCtx[1]) === 'string') {
-              r = toCtx<Stream>(iCtx[1])
-              if (r.pipe) {
-                r.pipe(res)
-              } else {
-                next()
-              }
+            this.log({
+              type: LogType.Warn,
+              path: pathname,
+              args: ['没有设置后备 html, 跳 server error 逻辑']
+            })
+            next(iCtx[0])
+          }
+        } else {
+          if (type(iCtx[1]) === 'string') {
+            r = toCtx<string>(iCtx[1])
+            this.setCache(pathname, r)
+            res.send(r)
+          } else if (type(iCtx[1]) === 'string') {
+            r = toCtx<Stream>(iCtx[1])
+            if (r.pipe) {
+              r.pipe(res)
             } else {
               next()
             }
+          } else {
+            next()
           }
-          break
+        }
+        break
 
-        default:
-          next()
-          break
-      }
+      default:
+        next()
+        break
     }
+  }
+
+  private async ssrRender(op: ServeYylSsrOptionRenderOption<O, I>) {
+    const { req, res, next } = op
+    const pathname = formatUrl(req.url as string)
 
     if (['', '.html', '.htm'].includes(path.extname(pathname))) {
       const curCache = await this.getCache(pathname)
       if (curCache) {
         res.send(curCache)
       } else {
-        typeHandler(this.render({ req, res, next }))
+        this.ctxRender({
+          res,
+          next,
+          pathname,
+          ctx: this.render({ req, res, next })
+        })
       }
     } else {
       this.log({

@@ -168,7 +168,7 @@ class YylSsr {
         /** 对外函数 */
         this.apply = () => {
             return (req, res, next) => {
-                this.handleRender({ req, res, next });
+                this.ssrRender({ req, res, next });
             };
         };
         const { dev, redisPort, logger, cacheExpire, render } = option;
@@ -183,7 +183,7 @@ class YylSsr {
                             next();
                         }
                         else {
-                            this.handleRender({ res, req, next });
+                            this.ssrRender({ res, req, next });
                         }
                     }
                     else {
@@ -212,80 +212,88 @@ class YylSsr {
             }
         });
     }
-    handleRender(op) {
+    ctxRender(props) {
+        const { ctx, res, pathname, next } = props;
+        let iCtx;
+        let r;
+        switch (yylUtil.type(ctx)) {
+            case 'string':
+                iCtx = toCtx(ctx);
+                this.setCache(pathname, iCtx);
+                res.send(iCtx);
+                break;
+            case 'promise':
+                iCtx = toCtx(ctx);
+                iCtx.then((val) => {
+                    this.ctxRender(Object.assign(Object.assign({}, props), { ctx: val }));
+                });
+                break;
+            case 'array':
+                iCtx = toCtx(ctx);
+                // error
+                if (iCtx[0]) {
+                    this.log({
+                        type: exports.LogType.Error,
+                        path: pathname,
+                        args: ['渲染出错', iCtx[0]]
+                    });
+                    if (iCtx[1]) {
+                        this.log({
+                            type: exports.LogType.Info,
+                            path: pathname,
+                            args: ['读取后备 html', iCtx[1]]
+                        });
+                    }
+                    else {
+                        this.log({
+                            type: exports.LogType.Warn,
+                            path: pathname,
+                            args: ['没有设置后备 html, 跳 server error 逻辑']
+                        });
+                        next(iCtx[0]);
+                    }
+                }
+                else {
+                    if (yylUtil.type(iCtx[1]) === 'string') {
+                        r = toCtx(iCtx[1]);
+                        this.setCache(pathname, r);
+                        res.send(r);
+                    }
+                    else if (yylUtil.type(iCtx[1]) === 'string') {
+                        r = toCtx(iCtx[1]);
+                        if (r.pipe) {
+                            r.pipe(res);
+                        }
+                        else {
+                            next();
+                        }
+                    }
+                    else {
+                        next();
+                    }
+                }
+                break;
+            default:
+                next();
+                break;
+        }
+    }
+    ssrRender(op) {
         return __awaiter(this, void 0, void 0, function* () {
             const { req, res, next } = op;
             const pathname = formatUrl(req.url);
-            let iCtx;
-            let r;
-            const typeHandler = (ctx) => __awaiter(this, void 0, void 0, function* () {
-                switch (yylUtil.type(ctx)) {
-                    case 'string':
-                        iCtx = toCtx(ctx);
-                        this.setCache(pathname, iCtx);
-                        res.send(iCtx);
-                        break;
-                    case 'promise':
-                        iCtx = toCtx(ctx);
-                        iCtx.then(typeHandler);
-                        break;
-                    case 'array':
-                        iCtx = toCtx(ctx);
-                        // error
-                        if (iCtx[0]) {
-                            this.log({
-                                type: exports.LogType.Error,
-                                path: pathname,
-                                args: ['渲染出错', iCtx[0]]
-                            });
-                            if (iCtx[1]) {
-                                this.log({
-                                    type: exports.LogType.Info,
-                                    path: pathname,
-                                    args: ['读取后备 html', iCtx[1]]
-                                });
-                            }
-                            else {
-                                this.log({
-                                    type: exports.LogType.Warn,
-                                    path: pathname,
-                                    args: ['没有设置后备 html, 跳 server error 逻辑']
-                                });
-                                next(iCtx[0]);
-                            }
-                        }
-                        else {
-                            if (yylUtil.type(iCtx[1]) === 'string') {
-                                r = toCtx(iCtx[1]);
-                                this.setCache(pathname, r);
-                                res.send(r);
-                            }
-                            else if (yylUtil.type(iCtx[1]) === 'string') {
-                                r = toCtx(iCtx[1]);
-                                if (r.pipe) {
-                                    r.pipe(res);
-                                }
-                                else {
-                                    next();
-                                }
-                            }
-                            else {
-                                next();
-                            }
-                        }
-                        break;
-                    default:
-                        next();
-                        break;
-                }
-            });
             if (['', '.html', '.htm'].includes(path.extname(pathname))) {
                 const curCache = yield this.getCache(pathname);
                 if (curCache) {
                     res.send(curCache);
                 }
                 else {
-                    typeHandler(this.render({ req, res, next }));
+                    this.ctxRender({
+                        res,
+                        next,
+                        pathname,
+                        ctx: this.render({ req, res, next })
+                    });
                 }
             }
             else {
