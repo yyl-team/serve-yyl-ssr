@@ -10,11 +10,11 @@ const HTML_FINISHED_REG = /<\/html>/
 
 /** url 格式化 */
 function formatUrl(url: string) {
-  let r = url.replace(/#.*$/g, '').replace(/\?.*$/g, '').replace(/&.*$/g, '')
-  if (/\/$/.test(r)) {
-    r = `${r}index.html`
+  const r = url.replace(/#.*$/g, '')
+  return {
+    key: encodeURIComponent(r),
+    pathname: r
   }
-  return r
 }
 
 /** next function 定义 */
@@ -202,7 +202,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
 
   private async ssrRender(op: ServeYylSsrOptionRenderOption<O, I>) {
     const { req, res, next } = op
-    const pathname = formatUrl(req.url as string)
+    const { pathname } = formatUrl(req.url as string)
 
     if (['', '.html', '.htm'].includes(path.extname(pathname))) {
       const curCache = await this.getCache(pathname)
@@ -234,9 +234,9 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     }
 
     const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss')
-    const pathname = formatUrl(url)
+    const { pathname, key } = formatUrl(url)
     if (this.redis) {
-      this.redis.set<CacheData>(pathname, {
+      this.redis.set<CacheData>(key, {
         date: nowStr,
         context: `${context}<!-- rendered at ${nowStr}  -->`
       })
@@ -254,10 +254,10 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     if (!cacheExpire) {
       return
     }
-    const pathname = formatUrl(url)
+    const { pathname, key } = formatUrl(url)
     const now = new Date()
     const nowStr = dayjs(now).format('YY-MM-DD HH:mm:ss')
-    const curCache = await this.redis?.get<CacheData>(pathname)
+    const curCache = await this.redis?.get<CacheData>(key)
     const cacheSecond = cacheExpire / 1000
     if (curCache) {
       // 缓存已失效

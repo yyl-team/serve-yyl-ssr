@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.3
+ * serve-yyl-ssr cjs 0.3.4
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
@@ -56,12 +56,16 @@ const ssrRedis = {
             const iPort = port || 6379;
             this.client = redis.createClient({ port: iPort });
             this.client.on('ready', () => {
-                this.isSupported = true;
-                log({
-                    type: exports.LogType.Info,
-                    path: 'system',
-                    args: ['redis 准备好了']
-                });
+                if (this.client) {
+                    this.client.flushall(() => {
+                        this.isSupported = true;
+                        log({
+                            type: exports.LogType.Info,
+                            path: 'system',
+                            args: ['redis 准备好了']
+                        });
+                    });
+                }
             });
             this.client.on('error', (er) => {
                 if (`${er === null || er === void 0 ? void 0 : er.message}`.indexOf('ECONNREFUSED') !== -1) {
@@ -135,10 +139,12 @@ const ssrRedis = {
         };
     },
     end() {
-        if (this.client) {
-            this.client.flushdb();
-        }
-        this.inited = false;
+        return new Promise((resolve) => {
+            if (this.client) {
+                this.client.flushdb(resolve);
+            }
+            this.inited = false;
+        });
     }
 };
 
@@ -146,11 +152,11 @@ const ssrRedis = {
 const HTML_FINISHED_REG = /<\/html>/;
 /** url 格式化 */
 function formatUrl(url) {
-    let r = url.replace(/#.*$/g, '').replace(/\?.*$/g, '').replace(/&.*$/g, '');
-    if (/\/$/.test(r)) {
-        r = `${r}index.html`;
-    }
-    return r;
+    const r = url.replace(/#.*$/g, '');
+    return {
+        key: encodeURIComponent(r),
+        pathname: r
+    };
 }
 function toCtx(ctx) {
     return ctx;
@@ -281,7 +287,7 @@ class YylSsr {
     ssrRender(op) {
         return __awaiter(this, void 0, void 0, function* () {
             const { req, res, next } = op;
-            const pathname = formatUrl(req.url);
+            const { pathname } = formatUrl(req.url);
             if (['', '.html', '.htm'].includes(path.extname(pathname))) {
                 const curCache = yield this.getCache(pathname);
                 if (curCache) {
@@ -313,9 +319,9 @@ class YylSsr {
             return;
         }
         const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss');
-        const pathname = formatUrl(url);
+        const { pathname, key } = formatUrl(url);
         if (this.redis) {
-            this.redis.set(pathname, {
+            this.redis.set(key, {
                 date: nowStr,
                 context: `${context}<!-- rendered at ${nowStr}  -->`
             });
@@ -334,10 +340,10 @@ class YylSsr {
             if (!cacheExpire) {
                 return;
             }
-            const pathname = formatUrl(url);
+            const { pathname, key } = formatUrl(url);
             const now = new Date();
             const nowStr = dayjs(now).format('YY-MM-DD HH:mm:ss');
-            const curCache = yield ((_a = this.redis) === null || _a === void 0 ? void 0 : _a.get(pathname));
+            const curCache = yield ((_a = this.redis) === null || _a === void 0 ? void 0 : _a.get(key));
             const cacheSecond = cacheExpire / 1000;
             if (curCache) {
                 // 缓存已失效

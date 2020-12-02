@@ -1,5 +1,5 @@
 {
-  "version": "0.3.3",
+  "version": "0.3.4",
   "main": "output/index.js",
   "types": "output/index.d.ts",
   "eslintConfig": {
@@ -34,6 +34,8 @@
     "release": "yyr",
     "prepublishOnly": "npm run prettier & npm run build",
     "test": "jest ./test/jest/ --detectOpenHandles",
+    "test:index": "jest ./test/jest/index.test.js --detectOpenHandles",
+    "test:query": "jest ./test/jest/query.test.js --detectOpenHandles",
     "pretest": "npm run d",
     "cbs": "node --inspect ./test/case/base/server.js",
     "cbc": "node ./test/case/base/client.js"
