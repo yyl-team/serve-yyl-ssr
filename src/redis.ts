@@ -44,12 +44,16 @@ export const ssrRedis: SsrRedis = {
       const iPort = port || 6379
       this.client = redis.createClient({ port: iPort })
       this.client.on('ready', () => {
-        this.isSupported = true
-        log({
-          type: LogType.Info,
-          path: 'system',
-          args: ['redis 准备好了']
-        })
+        if (this.client) {
+          this.client.flushall(() => {
+            this.isSupported = true
+            log({
+              type: LogType.Info,
+              path: 'system',
+              args: ['redis 准备好了']
+            })
+          })
+        }
       })
       this.client.on('error', (er) => {
         if (`${er?.message}`.indexOf('ECONNREFUSED') !== -1) {
@@ -120,9 +124,11 @@ export const ssrRedis: SsrRedis = {
     }
   },
   end() {
-    if (this.client) {
-      this.client.flushdb()
-    }
-    this.inited = false
+    return new Promise((resolve) => {
+      if (this.client) {
+        this.client.flushdb(resolve)
+      }
+      this.inited = false
+    })
   }
 }

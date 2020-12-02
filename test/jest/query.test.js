@@ -34,7 +34,16 @@ test('usage test', async () => {
 
   // + test
   const request = supertest(app)
-  const pathnames = ['/a', '/b', '/c', '/d', '/a']
+  const pathnames = [
+    '/a',
+    '/a?_12354',
+    '/a?_12354#123',
+    '/a?_12354#456',
+    '/a?_12354#789',
+    '/a#123456',
+    '/a#?_12354'
+  ]
+  const hash = dayjs().format('YYYY-MM-DD-hh-mm-ss')
 
   await util.forEach(pathnames, async (pathname) => {
     await new Promise((resolve) => {
@@ -50,9 +59,11 @@ test('usage test', async () => {
   expect(logs.filter((x) => !/失效/.test(x)).map((x) => x.replace(/\([^)]*\)/g, ''))).toEqual([
     '[info] - [system] redis 准备好了',
     `[info] - [/a] 写入缓存成功`,
-    `[info] - [/b] 写入缓存成功`,
-    `[info] - [/c] 写入缓存成功`,
-    `[info] - [/d] 写入缓存成功`,
+    `[info] - [/a?_12354] 写入缓存成功`,
+    `[info] - [/a?_12354] 读取缓存成功`,
+    `[info] - [/a?_12354] 读取缓存成功`,
+    `[info] - [/a?_12354] 读取缓存成功`,
+    `[info] - [/a] 读取缓存成功`,
     `[info] - [/a] 读取缓存成功`
   ])
 
