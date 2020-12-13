@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.5
+ * serve-yyl-ssr cjs 0.3.6
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
