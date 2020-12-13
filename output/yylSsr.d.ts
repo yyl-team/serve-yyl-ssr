@@ -11,6 +11,11 @@ interface ServeYylSsrOptionRenderOption<O extends Res, I extends Req> {
     req: I;
     next: NextFunction;
 }
+/** cache 类型 */
+export declare enum CacheType {
+    Redis = "redis",
+    None = "none"
+}
 /** yylSsr - option */
 export interface YylSsrOption<O extends Res, I extends Req> {
     /** 渲染 */
@@ -23,6 +28,8 @@ export interface YylSsrOption<O extends Res, I extends Req> {
     redisPort?: number;
     /** 缓存有效时间 */
     cacheExpire?: number;
+    /** 缓存类型 */
+    cacheType?: CacheType;
 }
 export declare type YylSsrProperty<O extends Res, I extends Req> = Required<YylSsrOption<O, I>>;
 export declare type YylSsrHandler<O extends Res, I extends Req> = () => (req: I, res: O, next: NextFunction) => void;
@@ -42,6 +49,8 @@ export declare class YylSsr<O extends Res = Res, I extends Req = Req> {
     private redis?;
     /** 缓存有效时间 */
     private cacheExpire;
+    /** 缓存类型 */
+    private cacheType;
     /** 对外函数 */
     apply: YylSsrHandler<O, I>;
     /** 初始化 */
