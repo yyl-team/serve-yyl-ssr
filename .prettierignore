@@ -22,3 +22,4 @@ package-lock.json
 **/*.conf
 **/__frag/*
 __frag/
+*.rdb

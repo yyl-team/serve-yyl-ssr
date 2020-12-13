@@ -8,3 +8,4 @@ config.mine.js
 build/
 .rpt2_cache/
 **/__frag/
+*.rdb
