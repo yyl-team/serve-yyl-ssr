@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.4
+ * serve-yyl-ssr cjs 0.3.5
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
@@ -158,6 +158,10 @@ function formatUrl(url) {
         pathname: r
     };
 }
+(function (CacheType) {
+    CacheType["Redis"] = "redis";
+    CacheType["None"] = "none";
+})(exports.CacheType || (exports.CacheType = {}));
 function toCtx(ctx) {
     return ctx;
 }
@@ -171,13 +175,15 @@ class YylSsr {
         this.render = () => [new Error('render 未赋值'), undefined];
         /** 缓存有效时间 */
         this.cacheExpire = 1000 * 60;
+        /** 缓存类型 */
+        this.cacheType = exports.CacheType.Redis;
         /** 对外函数 */
         this.apply = () => {
             return (req, res, next) => {
                 this.ssrRender({ req, res, next });
             };
         };
-        const { dev, redisPort, logger, cacheExpire, render } = option;
+        const { dev, redisPort, logger, cacheExpire, render, cacheType } = option;
         if (dev) {
             this.apply = () => {
                 return (req, res, next) => {
@@ -209,6 +215,10 @@ class YylSsr {
         // render 赋值
         if (render) {
             this.render = render;
+        }
+        // 缓存类型
+        if (cacheType) {
+            this.cacheType = cacheType;
         }
         // redis 初始化
         this.redis = ssrRedis.init({
@@ -314,8 +324,8 @@ class YylSsr {
     }
     /** 缓存保存 */
     setCache(url, context) {
-        const { cacheExpire } = this;
-        if (!cacheExpire) {
+        const { cacheExpire, cacheType } = this;
+        if (!cacheExpire || cacheType === exports.CacheType.None) {
             return;
         }
         const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss');
@@ -336,8 +346,8 @@ class YylSsr {
     getCache(url) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const { cacheExpire } = this;
-            if (!cacheExpire) {
+            const { cacheExpire, cacheType } = this;
+            if (!cacheExpire || cacheType === exports.CacheType.None) {
                 return;
             }
             const { pathname, key } = formatUrl(url);

@@ -36,6 +36,12 @@ interface CacheData extends RedisData {
   context: string
 }
 
+/** cache 类型 */
+export enum CacheType {
+  Redis = 'redis',
+  None = 'none'
+}
+
 /** yylSsr - option */
 export interface YylSsrOption<O extends Res, I extends Req> {
   /** 渲染 */
@@ -48,6 +54,8 @@ export interface YylSsrOption<O extends Res, I extends Req> {
   redisPort?: number
   /** 缓存有效时间 */
   cacheExpire?: number
+  /** 缓存类型 */
+  cacheType?: CacheType
 }
 
 function toCtx<T>(ctx: any) {
@@ -79,6 +87,8 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
   private redis?: SsrRedisHandle
   /** 缓存有效时间 */
   private cacheExpire: number = 1000 * 60
+  /** 缓存类型 */
+  private cacheType: YylSsrProperty<O, I>['cacheType'] = CacheType.Redis
 
   /** 对外函数 */
   public apply: YylSsrHandler<O, I> = () => {
@@ -89,7 +99,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
 
   /** 初始化 */
   constructor(option: YylSsrOption<O, I>) {
-    const { dev, redisPort, logger, cacheExpire, render } = option
+    const { dev, redisPort, logger, cacheExpire, render, cacheType } = option
     if (dev) {
       this.apply = () => {
         return (req, res, next) => {
@@ -121,6 +131,11 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     // render 赋值
     if (render) {
       this.render = render
+    }
+
+    // 缓存类型
+    if (cacheType) {
+      this.cacheType = cacheType
     }
 
     // redis 初始化
@@ -228,8 +243,8 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
 
   /** 缓存保存 */
   private setCache(url: string, context: string) {
-    const { cacheExpire } = this
-    if (!cacheExpire) {
+    const { cacheExpire, cacheType } = this
+    if (!cacheExpire || cacheType === CacheType.None) {
       return
     }
 
@@ -250,8 +265,8 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
 
   /** 缓存提取 */
   private async getCache(url: string) {
-    const { cacheExpire } = this
-    if (!cacheExpire) {
+    const { cacheExpire, cacheType } = this
+    if (!cacheExpire || cacheType === CacheType.None) {
       return
     }
     const { pathname, key } = formatUrl(url)
