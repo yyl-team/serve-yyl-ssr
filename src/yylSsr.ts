@@ -241,7 +241,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     const { pathname } = formatUrl(req.url as string)
     const cacheMark = this.parseCacheMark(req)
 
-    if (['', '.html', '.htm'].includes(path.extname(pathname))) {
+    if (['', '.html', '.htm'].includes(path.extname(pathname.replace(/\?.*$/, '')))) {
       const curCache = await this.getCache(pathname, cacheMark)
       if (curCache) {
         res.send(curCache)
