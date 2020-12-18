@@ -1,5 +1,5 @@
 {
-  "version": "0.3.6",
+  "version": "0.3.7",
   "main": "output/index.js",
   "types": "output/index.d.ts",
   "eslintConfig": {
@@ -36,6 +36,7 @@
     "test": "jest ./test/jest/ --detectOpenHandles",
     "test:index": "jest ./test/jest/index.test.js --detectOpenHandles",
     "test:query": "jest ./test/jest/query.test.js --detectOpenHandles",
+    "test:cacheMark": "jest ./test/jest/cacheMark.test.js --detectOpenHandles",
     "pretest": "npm run d",
     "cbs": "node --inspect ./test/case/base/server.js",
     "cbc": "node ./test/case/base/client.js"

@@ -15,6 +15,7 @@ test('usage test', async () => {
     throw new Error('请先启动 redis-server 再进行自测')
   }
 
+  let padding = 0
   // prepare
   const app = express()
   const logs = []
@@ -28,22 +29,17 @@ test('usage test', async () => {
       },
       logger({ type, path, args }) {
         logs.push(`[${type}] - [${path}] ${args.join(' ')}`)
+      },
+      cacheMark: () => {
+        const mark = ++padding % 2
+        return mark
       }
     })
   )
 
   // + test
   const request = supertest(app)
-  const pathnames = [
-    '/a',
-    '/a?_12354',
-    '/a?_12354#123',
-    '/a?_12354#456',
-    '/a?_12354#789',
-    '/a#123456',
-    '/a#?_12354'
-  ]
-  const hash = dayjs().format('YYYY-MM-DD-hh-mm-ss')
+  const pathnames = ['/a', '/a', '/a', '/a', '/b']
 
   await util.forEach(pathnames, async (pathname) => {
     await new Promise((resolve) => {
@@ -58,13 +54,11 @@ test('usage test', async () => {
 
   expect(logs.filter((x) => !/失效/.test(x)).map((x) => x.replace(/\([^)]*\)/g, ''))).toEqual([
     '[info] - [system] redis 准备好了',
-    `[info] - [/a] 写入缓存成功 缓存标识: []`,
-    `[info] - [/a?_12354] 写入缓存成功 缓存标识: []`,
-    `[info] - [/a?_12354] 读取缓存成功 缓存标识: []`,
-    `[info] - [/a?_12354] 读取缓存成功 缓存标识: []`,
-    `[info] - [/a?_12354] 读取缓存成功 缓存标识: []`,
-    `[info] - [/a] 读取缓存成功 缓存标识: []`,
-    `[info] - [/a] 读取缓存成功 缓存标识: []`
+    `[info] - [/a] 写入缓存成功 缓存标识: [1]`,
+    `[info] - [/a] 写入缓存成功 缓存标识: [0]`,
+    `[info] - [/a] 读取缓存成功 缓存标识: [1]`,
+    `[info] - [/a] 读取缓存成功 缓存标识: [0]`,
+    `[info] - [/b] 写入缓存成功 缓存标识: [1]`
   ])
 
   // end

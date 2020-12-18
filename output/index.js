@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.6
+ * serve-yyl-ssr cjs 0.3.7
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
@@ -177,13 +177,15 @@ class YylSsr {
         this.cacheExpire = 1000 * 60;
         /** 缓存类型 */
         this.cacheType = exports.CacheType.Redis;
+        /** 缓存标识 */
+        this.cacheMark = '';
         /** 对外函数 */
         this.apply = () => {
             return (req, res, next) => {
                 this.ssrRender({ req, res, next });
             };
         };
-        const { dev, redisPort, logger, cacheExpire, render, cacheType } = option;
+        const { dev, redisPort, logger, cacheExpire, render, cacheType, cacheMark } = option;
         if (dev) {
             this.apply = () => {
                 return (req, res, next) => {
@@ -220,6 +222,10 @@ class YylSsr {
         if (cacheType) {
             this.cacheType = cacheType;
         }
+        // 缓存标识
+        if (cacheMark) {
+            this.cacheMark = cacheMark;
+        }
         // redis 初始化
         this.redis = ssrRedis.init({
             port: redisPort,
@@ -228,14 +234,24 @@ class YylSsr {
             }
         });
     }
+    // 解析 cacheMark
+    parseCacheMark(req) {
+        const { cacheMark } = this;
+        if (typeof cacheMark === 'string') {
+            return cacheMark;
+        }
+        else {
+            return cacheMark(req);
+        }
+    }
     ctxRender(props) {
-        const { ctx, res, pathname, next } = props;
+        const { ctx, res, pathname, next, req, cacheMark } = props;
         let iCtx;
         let r;
         switch (yylUtil.type(ctx)) {
             case 'string':
                 iCtx = toCtx(ctx);
-                this.setCache(pathname, iCtx);
+                this.setCache(pathname, iCtx, cacheMark);
                 res.send(iCtx);
                 break;
             case 'promise':
@@ -272,7 +288,7 @@ class YylSsr {
                 else {
                     if (yylUtil.type(iCtx[1]) === 'string') {
                         r = toCtx(iCtx[1]);
-                        this.setCache(pathname, r);
+                        this.setCache(pathname, r, this.parseCacheMark(req));
                         res.send(r);
                     }
                     else if (yylUtil.type(iCtx[1]) === 'string') {
@@ -298,17 +314,20 @@ class YylSsr {
         return __awaiter(this, void 0, void 0, function* () {
             const { req, res, next } = op;
             const { pathname } = formatUrl(req.url);
+            const cacheMark = this.parseCacheMark(req);
             if (['', '.html', '.htm'].includes(path.extname(pathname))) {
-                const curCache = yield this.getCache(pathname);
+                const curCache = yield this.getCache(pathname, cacheMark);
                 if (curCache) {
                     res.send(curCache);
                 }
                 else {
                     this.ctxRender({
+                        req,
                         res,
                         next,
                         pathname,
-                        ctx: this.render({ req, res, next })
+                        ctx: this.render({ req, res, next }),
+                        cacheMark
                     });
                 }
             }
@@ -323,27 +342,28 @@ class YylSsr {
         });
     }
     /** 缓存保存 */
-    setCache(url, context) {
+    setCache(url, context, cacheMark) {
         const { cacheExpire, cacheType } = this;
         if (!cacheExpire || cacheType === exports.CacheType.None) {
             return;
         }
         const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss');
         const { pathname, key } = formatUrl(url);
+        const cacheKey = cacheMark ? `${cacheMark}-${key}` : key;
         if (this.redis) {
-            this.redis.set(key, {
+            this.redis.set(cacheKey, {
                 date: nowStr,
                 context: `${context}<!-- rendered at ${nowStr}  -->`
             });
             this.log({
                 type: exports.LogType.Info,
                 path: pathname,
-                args: ['写入缓存成功']
+                args: ['写入缓存成功', `缓存标识: [${cacheMark}]`]
             });
         }
     }
     /** 缓存提取 */
-    getCache(url) {
+    getCache(url, cacheMark) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const { cacheExpire, cacheType } = this;
@@ -351,9 +371,10 @@ class YylSsr {
                 return;
             }
             const { pathname, key } = formatUrl(url);
+            const cacheKey = cacheMark ? `${cacheMark}-${key}` : key;
             const now = new Date();
             const nowStr = dayjs(now).format('YY-MM-DD HH:mm:ss');
-            const curCache = yield ((_a = this.redis) === null || _a === void 0 ? void 0 : _a.get(key));
+            const curCache = yield ((_a = this.redis) === null || _a === void 0 ? void 0 : _a.get(cacheKey));
             const cacheSecond = cacheExpire / 1000;
             if (curCache) {
                 // 缓存已失效
@@ -362,7 +383,8 @@ class YylSsr {
                         type: exports.LogType.Info,
                         path: pathname,
                         args: [
-                            `读取缓存失败:缓存已失效(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+                            `读取缓存失败:缓存已失效(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`,
+                            `缓存标识: [${cacheMark}]`
                         ]
                     });
                 }
@@ -371,7 +393,7 @@ class YylSsr {
                         this.log({
                             type: exports.LogType.Warn,
                             path: pathname,
-                            args: [`读取缓存失败，缓存内容不完整`, curCache.context]
+                            args: [`读取缓存失败，缓存内容不完整`, curCache.context, `缓存标识: [${cacheMark}]`]
                         });
                     }
                     else {
@@ -379,7 +401,8 @@ class YylSsr {
                             type: exports.LogType.Info,
                             path: pathname,
                             args: [
-                                `读取缓存成功(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+                                `读取缓存成功(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`,
+                                `缓存标识: [${cacheMark}]`
                             ]
                         });
                         return curCache.context;

@@ -88,6 +88,8 @@ export interface YylSsrOption<O extends Res, I extends Req> {
   cacheExpire?: number
   /** 缓存类型 */
   cacheType?: CacheType
+  /** 缓存标识 */
+  cacheMark?: string | ((req: I) => string)
 }
 export declare type YylSsrProperty<O extends Res, I extends Req> = Required<YylSsrOption<O, I>>
 export declare type YylSsrHandler<O extends Res, I extends Req> = () => (
@@ -95,11 +97,13 @@ export declare type YylSsrHandler<O extends Res, I extends Req> = () => (
   res: O,
   next: NextFunction
 ) => void
-export interface CtxRenderProps<O extends Res> {
+export interface CtxRenderProps<I extends Req, O extends Res> {
+  req: I
   res: O
   ctx: Promise<RenderResult> | RenderResult
   pathname: string
   next: NextFunction
+  cacheMark: string
 }
 /** yylSsr - 类 */
 export declare class YylSsr<O extends Res = Res, I extends Req = Req> {
@@ -113,10 +117,13 @@ export declare class YylSsr<O extends Res = Res, I extends Req = Req> {
   private cacheExpire
   /** 缓存类型 */
   private cacheType
+  /** 缓存标识 */
+  private cacheMark
   /** 对外函数 */
   apply: YylSsrHandler<O, I>
   /** 初始化 */
   constructor(option: YylSsrOption<O, I>)
+  private parseCacheMark
   private ctxRender
   private ssrRender
   /** 缓存保存 */
@@ -127,34 +134,4 @@ export declare class YylSsr<O extends Res = Res, I extends Req = Req> {
   private log
 }
 export {}
-```
-
-### types
-
-```typescript
-/// <reference types="node" />
-import { IncomingMessage, OutgoingMessage } from 'http'
-/** 日志-接收函数 */
-export declare type Logger = (props: LoggerProps) => void
-/** 日志-类型 */
-export declare enum LogType {
-  Info = 'info',
-  Error = 'error',
-  Warn = 'warn'
-}
-/** 日志-参数 */
-export interface LoggerProps {
-  /** 类型 */
-  type: LogType
-  /** 请求url */
-  path: string
-  /** 参数 */
-  args: any[]
-}
-export interface Res extends OutgoingMessage {
-  send(ctx: string): void
-}
-export interface Req extends IncomingMessage {
-  url: string
-}
 ```
