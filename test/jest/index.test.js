@@ -49,11 +49,11 @@ test('usage test', async () => {
 
   expect(logs.filter((x) => !/失效/.test(x)).map((x) => x.replace(/\([^)]*\)/g, ''))).toEqual([
     '[info] - [system] redis 准备好了',
-    `[info] - [/a] 写入缓存成功`,
-    `[info] - [/b] 写入缓存成功`,
-    `[info] - [/c] 写入缓存成功`,
-    `[info] - [/d] 写入缓存成功`,
-    `[info] - [/a] 读取缓存成功`
+    `[info] - [/a] 写入缓存成功 缓存标识: []`,
+    `[info] - [/b] 写入缓存成功 缓存标识: []`,
+    `[info] - [/c] 写入缓存成功 缓存标识: []`,
+    `[info] - [/d] 写入缓存成功 缓存标识: []`,
+    `[info] - [/a] 读取缓存成功 缓存标识: []`
   ])
 
   // end
