@@ -1,5 +1,5 @@
 /*!
- * serve-yyl-ssr cjs 0.3.7
+ * serve-yyl-ssr cjs 0.3.8
  * (c) 2020 - 2020 jackness
  * Released under the MIT License.
  */
@@ -315,7 +315,7 @@ class YylSsr {
             const { req, res, next } = op;
             const { pathname } = formatUrl(req.url);
             const cacheMark = this.parseCacheMark(req);
-            if (['', '.html', '.htm'].includes(path.extname(pathname))) {
+            if (['', '.html', '.htm'].includes(path.extname(pathname.replace(/\?.*$/, '')))) {
                 const curCache = yield this.getCache(pathname, cacheMark);
                 if (curCache) {
                     res.send(curCache);
