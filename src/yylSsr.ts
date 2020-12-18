@@ -36,6 +36,12 @@ interface CacheData extends RedisData {
   context: string
 }
 
+/** cache 类型 */
+export enum CacheType {
+  Redis = 'redis',
+  None = 'none'
+}
+
 /** yylSsr - option */
 export interface YylSsrOption<O extends Res, I extends Req> {
   /** 渲染 */
@@ -48,6 +54,10 @@ export interface YylSsrOption<O extends Res, I extends Req> {
   redisPort?: number
   /** 缓存有效时间 */
   cacheExpire?: number
+  /** 缓存类型 */
+  cacheType?: CacheType
+  /** 缓存标识 */
+  cacheMark?: string | ((req: I) => string)
 }
 
 function toCtx<T>(ctx: any) {
@@ -62,11 +72,13 @@ export type YylSsrHandler<O extends Res, I extends Req> = () => (
   next: NextFunction
 ) => void
 
-export interface CtxRenderProps<O extends Res> {
+export interface CtxRenderProps<I extends Req, O extends Res> {
+  req: I
   res: O
   ctx: Promise<RenderResult> | RenderResult
   pathname: string
   next: NextFunction
+  cacheMark: string
 }
 
 /** yylSsr - 类 */
@@ -79,6 +91,10 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
   private redis?: SsrRedisHandle
   /** 缓存有效时间 */
   private cacheExpire: number = 1000 * 60
+  /** 缓存类型 */
+  private cacheType: YylSsrProperty<O, I>['cacheType'] = CacheType.Redis
+  /** 缓存标识 */
+  private cacheMark: YylSsrProperty<O, I>['cacheMark'] = ''
 
   /** 对外函数 */
   public apply: YylSsrHandler<O, I> = () => {
@@ -89,7 +105,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
 
   /** 初始化 */
   constructor(option: YylSsrOption<O, I>) {
-    const { dev, redisPort, logger, cacheExpire, render } = option
+    const { dev, redisPort, logger, cacheExpire, render, cacheType, cacheMark } = option
     if (dev) {
       this.apply = () => {
         return (req, res, next) => {
@@ -123,6 +139,16 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
       this.render = render
     }
 
+    // 缓存类型
+    if (cacheType) {
+      this.cacheType = cacheType
+    }
+
+    // 缓存标识
+    if (cacheMark) {
+      this.cacheMark = cacheMark
+    }
+
     // redis 初始化
     this.redis = ssrRedis.init({
       port: redisPort,
@@ -132,14 +158,24 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
     })
   }
 
-  private ctxRender(props: CtxRenderProps<O>) {
-    const { ctx, res, pathname, next } = props
+  // 解析 cacheMark
+  private parseCacheMark(req: I): string {
+    const { cacheMark } = this
+    if (typeof cacheMark === 'string') {
+      return cacheMark
+    } else {
+      return cacheMark(req)
+    }
+  }
+
+  private ctxRender(props: CtxRenderProps<I, O>) {
+    const { ctx, res, pathname, next, req, cacheMark } = props
     let iCtx
     let r
     switch (type(ctx)) {
       case 'string':
         iCtx = toCtx<string>(ctx)
-        this.setCache(pathname, iCtx)
+        this.setCache(pathname, iCtx, cacheMark)
         res.send(iCtx)
         break
 
@@ -179,7 +215,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
         } else {
           if (type(iCtx[1]) === 'string') {
             r = toCtx<string>(iCtx[1])
-            this.setCache(pathname, r)
+            this.setCache(pathname, r, this.parseCacheMark(req))
             res.send(r)
           } else if (type(iCtx[1]) === 'string') {
             r = toCtx<Stream>(iCtx[1])
@@ -203,17 +239,20 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
   private async ssrRender(op: ServeYylSsrOptionRenderOption<O, I>) {
     const { req, res, next } = op
     const { pathname } = formatUrl(req.url as string)
+    const cacheMark = this.parseCacheMark(req)
 
     if (['', '.html', '.htm'].includes(path.extname(pathname))) {
-      const curCache = await this.getCache(pathname)
+      const curCache = await this.getCache(pathname, cacheMark)
       if (curCache) {
         res.send(curCache)
       } else {
         this.ctxRender({
+          req,
           res,
           next,
           pathname,
-          ctx: this.render({ req, res, next })
+          ctx: this.render({ req, res, next }),
+          cacheMark
         })
       }
     } else {
@@ -227,37 +266,39 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
   }
 
   /** 缓存保存 */
-  private setCache(url: string, context: string) {
-    const { cacheExpire } = this
-    if (!cacheExpire) {
+  private setCache(url: string, context: string, cacheMark?: string) {
+    const { cacheExpire, cacheType } = this
+    if (!cacheExpire || cacheType === CacheType.None) {
       return
     }
 
     const nowStr = dayjs().format('YYYY-MM-DD HH:mm:ss')
     const { pathname, key } = formatUrl(url)
+    const cacheKey = cacheMark ? `${cacheMark}-${key}` : key
     if (this.redis) {
-      this.redis.set<CacheData>(key, {
+      this.redis.set<CacheData>(cacheKey, {
         date: nowStr,
         context: `${context}<!-- rendered at ${nowStr}  -->`
       })
       this.log({
         type: LogType.Info,
         path: pathname,
-        args: ['写入缓存成功']
+        args: ['写入缓存成功', `缓存标识: [${cacheMark}]`]
       })
     }
   }
 
   /** 缓存提取 */
-  private async getCache(url: string) {
-    const { cacheExpire } = this
-    if (!cacheExpire) {
+  private async getCache(url: string, cacheMark?: string) {
+    const { cacheExpire, cacheType } = this
+    if (!cacheExpire || cacheType === CacheType.None) {
       return
     }
     const { pathname, key } = formatUrl(url)
+    const cacheKey = cacheMark ? `${cacheMark}-${key}` : key
     const now = new Date()
     const nowStr = dayjs(now).format('YY-MM-DD HH:mm:ss')
-    const curCache = await this.redis?.get<CacheData>(key)
+    const curCache = await this.redis?.get<CacheData>(cacheKey)
     const cacheSecond = cacheExpire / 1000
     if (curCache) {
       // 缓存已失效
@@ -266,7 +307,8 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
           type: LogType.Info,
           path: pathname,
           args: [
-            `读取缓存失败:缓存已失效(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+            `读取缓存失败:缓存已失效(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`,
+            `缓存标识: [${cacheMark}]`
           ]
         })
       } else {
@@ -274,14 +316,15 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
           this.log({
             type: LogType.Warn,
             path: pathname,
-            args: [`读取缓存失败，缓存内容不完整`, curCache.context]
+            args: [`读取缓存失败，缓存内容不完整`, curCache.context, `缓存标识: [${cacheMark}]`]
           })
         } else {
           this.log({
             type: LogType.Info,
             path: pathname,
             args: [
-              `读取缓存成功(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`
+              `读取缓存成功(现: ${nowStr}, 创建时间:${curCache.date}, 缓存时长: ${cacheSecond}s)`,
+              `缓存标识: [${cacheMark}]`
             ]
           })
           return curCache.context

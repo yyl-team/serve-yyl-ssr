@@ -21,3 +21,5 @@ package-lock.json
 **/*.sh
 **/*.conf
 **/__frag/*
+__frag/
+*.rdb
