@@ -1,6 +1,6 @@
 /*!
- * serve-yyl-ssr cjs 0.3.8
- * (c) 2020 - 2020 jackness
+ * serve-yyl-ssr cjs 0.3.9
+ * (c) 2020 - 2021 jackness
  * Released under the MIT License.
  */
 'use strict';
@@ -291,7 +291,7 @@ class YylSsr {
                         this.setCache(pathname, r, this.parseCacheMark(req));
                         res.send(r);
                     }
-                    else if (yylUtil.type(iCtx[1]) === 'string') {
+                    else if (yylUtil.type(iCtx[1]) === 'object') {
                         r = toCtx(iCtx[1]);
                         if (r.pipe) {
                             r.pipe(res);
