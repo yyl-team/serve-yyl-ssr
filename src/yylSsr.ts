@@ -217,7 +217,7 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
             r = toCtx<string>(iCtx[1])
             this.setCache(pathname, r, this.parseCacheMark(req))
             res.send(r)
-          } else if (type(iCtx[1]) === 'string') {
+          } else if (type(iCtx[1]) === 'object') {
             r = toCtx<Stream>(iCtx[1])
             if (r.pipe) {
               r.pipe(res)
