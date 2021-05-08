@@ -62,7 +62,7 @@
   },
   "name": "serve-yyl-ssr",
   "repository": "https://github.com/jackness1208/serve-yyl-ssr.git",
-  "author": "liudaojie <liudaojie@yy.com>",
+  "author": "jackness1208",
   "license": "MIT",
   "dependencies": {
     "@types/redis": "^2.8.28",
