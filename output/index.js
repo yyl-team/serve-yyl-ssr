@@ -1,6 +1,6 @@
 /*!
- * serve-yyl-ssr cjs 0.3.9
- * (c) 2020 - 2021 jackness
+ * serve-yyl-ssr cjs 0.3.10
+ * (c) 2020 - 2022 jackness
  * Released under the MIT License.
  */
 'use strict';
@@ -275,6 +275,12 @@ class YylSsr {
                             path: pathname,
                             args: ['读取后备 html', iCtx[1]]
                         });
+                        if (typeof iCtx[1] === 'string') {
+                            res.send(iCtx[1]);
+                        }
+                        else {
+                            iCtx[1].pipe(res);
+                        }
                     }
                     else {
                         this.log({

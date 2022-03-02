@@ -1,5 +1,9 @@
 # 版本信息
 
+## 0.3.10 (2022-03-02)
+
+- fix: 修复 ctxRender([err, backupHtml]) 执行时，没有 运行 backupHtml 部分逻辑问题
+
 ## 0.3.9 (2021-04-13)
 
 - feat: 调整 ssr 判断

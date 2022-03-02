@@ -204,6 +204,11 @@ export class YylSsr<O extends Res = Res, I extends Req = Req> {
               path: pathname,
               args: ['读取后备 html', iCtx[1]]
             })
+            if (typeof iCtx[1] === 'string') {
+              res.send(iCtx[1])
+            } else {
+              iCtx[1].pipe(res)
+            }
           } else {
             this.log({
               type: LogType.Warn,
